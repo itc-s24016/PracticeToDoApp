@@ -3,6 +3,7 @@ package com.example.practicetodoapp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.update
 
 class TodoViewModel: ViewModel() {
     // ダミーのToDoリスト
@@ -14,4 +15,11 @@ class TodoViewModel: ViewModel() {
         )
     )
     val showTodos = _todos.asStateFlow()
+
+    fun toggleComplete(todo: Todo){
+        val updated = todo.copy(isCompleted = !todo.isCompleted)
+        _todos.update { list ->
+            list.map{if (it.id == todo.id) updated else it}
+        }
+    }
 }

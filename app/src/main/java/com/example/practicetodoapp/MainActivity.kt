@@ -79,7 +79,7 @@ fun Main() {
         ) {
             TodoList(
                 todos = showTodos,
-                onToggleComplete = { },
+                onToggleComplete = {viewModel.toggleComplete(it)},
                 onEdit = { },
             )
         }
