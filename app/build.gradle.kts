@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(platform(libs.androidx.compose.bom))

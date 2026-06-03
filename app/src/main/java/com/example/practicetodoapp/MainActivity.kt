@@ -27,6 +27,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +55,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Main() {
+    val viewModel: TodoViewModel = viewModel()
+    val showTodos by viewModel.showTodos.collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -60,7 +76,72 @@ fun Main() {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-        )
+        ) {
+            TodoList(
+                todos = showTodos,
+                onToggleComplete = { },
+                onEdit = { },
+            )
+        }
+    }
+}
+
+@Composable
+fun TodoList(
+    todos: List<Todo>,
+    onToggleComplete: (Todo) -> Unit,
+    onEdit: (Todo) -> Unit,
+    modifier: Modifier = Modifier
+){
+    LazyColumn(modifier = Modifier) {
+        items (
+            items = todos,
+            key = {it.id}
+        ) {
+                todo ->
+            TodoCard(
+                todo = todo,
+                onToggleComplete = onToggleComplete,
+                onEdit = onEdit
+            )
+        }
+    }
+}
+
+@Composable
+fun TodoCard(
+    todo: Todo,
+    onToggleComplete: (Todo) -> Unit,
+    onEdit: (Todo) -> Unit,
+){
+    Card(
+        modifier = Modifier
+            .padding(2.dp)
+            .fillMaxWidth()
+            .clickable{onEdit(todo)}
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ){
+            Checkbox(
+                checked = todo.isCompleted,
+                onCheckedChange = {onToggleComplete(todo)},
+                modifier = Modifier.padding(8.dp)
+            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = todo.title, fontSize = 20.sp)
+                Text(
+                    text = todo.memo,
+                    fontSize = 12.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
 }
 
