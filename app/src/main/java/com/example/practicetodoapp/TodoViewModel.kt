@@ -4,8 +4,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 class TodoViewModel: ViewModel() {
+    private val _showCompleted = MutableStateFlow(false)
+    val showCompleted: StateFlow<Boolean> = _showCompleted.asStateFlow()
+
+    fun setShowCompleted(show: Boolean){
+        _showCompleted.value = show
+    }
     // ダミーのToDoリスト
     private val _todos = MutableStateFlow(
         listOf(
@@ -14,7 +25,11 @@ class TodoViewModel: ViewModel() {
             Todo(id = 3, title = "ToDo3", memo = "Memo3"),
         )
     )
-    val showTodos = _todos.asStateFlow()
+
+    val showTodos: StateFlow<List<Todo>> =
+        combine(_todos, _showCompleted) { todos, showCompleted ->
+        if (showCompleted) todos else todos.filter { !it.isCompleted }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun toggleComplete(todo: Todo){
         val updated = todo.copy(isCompleted = !todo.isCompleted)

@@ -57,12 +57,13 @@ class MainActivity : ComponentActivity() {
 fun Main() {
     val viewModel: TodoViewModel = viewModel()
     val showTodos by viewModel.showTodos.collectAsStateWithLifecycle()
+    val showCompleted by viewModel.showCompleted.collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TodoTopBar(
-                showCompleted = false,
-                onToggleShowCompleted = { },
+                showCompleted = showCompleted,
+                onToggleShowCompleted = {viewModel.setShowCompleted(it)},
                 onDeleteCompleted = { },
             )
         },
