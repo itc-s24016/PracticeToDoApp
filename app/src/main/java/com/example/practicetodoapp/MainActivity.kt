@@ -40,6 +40,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Dialog
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +66,7 @@ fun Main() {
     val viewModel: TodoViewModel = viewModel()
     val showTodos by viewModel.showTodos.collectAsStateWithLifecycle()
     val showCompleted by viewModel.showCompleted.collectAsStateWithLifecycle()
+    var editingTodo by remember {mutableStateOf<Todo?>(null)}
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -69,7 +78,7 @@ fun Main() {
         },
         floatingActionButton = {
             TodoActionButton {
-                // 後で処理を書く
+                editingTodo = Todo(title = "", memo = "")
             }
         }
         ) { innerPadding ->
@@ -81,8 +90,79 @@ fun Main() {
             TodoList(
                 todos = showTodos,
                 onToggleComplete = {viewModel.toggleComplete(it)},
-                onEdit = { },
+                onEdit = {editingTodo = it},
             )
+        }
+    }
+    editingTodo?.let { todo ->
+        EditTodoDialog(
+            todo = todo,
+            onDismiss = {editingTodo = null}
+        ) { savedTodo ->
+            viewModel.saveTodo(savedTodo)
+            editingTodo = null
+        }
+    }
+}
+
+@Composable
+fun EditTodoDialog(
+    todo: Todo,
+    onDismiss: () -> Unit,
+    onSaveTodo: (Todo) -> Unit
+){
+    var updatedTitle by remember { mutableStateOf(todo.title) }
+    var updatedMemo by remember { mutableStateOf(todo.memo) }
+
+    Dialog(onDismissRequest = {onDismiss()}) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ){
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("ToDo の編集")
+
+                OutlinedTextField(
+                    value = updatedTitle,
+                    onValueChange = {updatedTitle = it},
+                    placeholder = {Text("タイトル")},
+                    label = {Text("ToDo")},
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = updatedMemo,
+                    onValueChange = {updatedMemo = it},
+                    label = {Text("メモ")},
+                    maxLines = 15,
+                    placeholder = {Text("メモ")},
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    TextButton(onClick = {onDismiss()}){
+                        Text("キャンセル")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        enabled = updatedTitle.isNotEmpty(),
+                        onClick = {
+                            onSaveTodo(todo.copy(title = updatedTitle, memo = updatedMemo))
+                        }
+                    ) {
+                        Text("保存")
+                    }
+                }
+            }
         }
     }
 }

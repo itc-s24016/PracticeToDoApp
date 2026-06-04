@@ -37,4 +37,15 @@ class TodoViewModel: ViewModel() {
             list.map{if (it.id == todo.id) updated else it}
         }
     }
+
+    fun saveTodo(todo: Todo){
+        _todos.update { list ->
+            if (todo.isNew){
+                val nextId = (list.maxOfOrNull { it.id } ?: 0L) + 1L
+                list + todo.copy(id = nextId)
+            } else {
+                list.map{if (it.id == todo.id) todo else it}
+            }
+        }
+    }
 }
