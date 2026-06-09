@@ -48,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Dialog
+import androidx.compose.material3.AlertDialog
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,13 +68,14 @@ fun Main() {
     val showTodos by viewModel.showTodos.collectAsStateWithLifecycle()
     val showCompleted by viewModel.showCompleted.collectAsStateWithLifecycle()
     var editingTodo by remember {mutableStateOf<Todo?>(null)}
+    var showCleanupDialog by remember {mutableStateOf(false)}
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TodoTopBar(
                 showCompleted = showCompleted,
                 onToggleShowCompleted = {viewModel.setShowCompleted(it)},
-                onDeleteCompleted = { },
+                onDeleteCompleted = {showCleanupDialog = true},
             )
         },
         floatingActionButton = {
@@ -102,6 +104,24 @@ fun Main() {
             viewModel.saveTodo(savedTodo)
             editingTodo = null
         }
+    }
+    if (showCleanupDialog) {
+        AlertDialog(
+            onDismissRequest = {showCleanupDialog = false},
+            title = {Text("完了したToDoの削除")},
+            text = {Text("完了したToDoを全て削除します。よろしいですか？")},
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deletedCompletedTodos()
+                    showCleanupDialog = false
+                }) {Text("削除")}
+            },
+            dismissButton = {
+                TextButton(onClick = {showCleanupDialog = false}) {
+                    Text("キャンセル")
+                }
+            }
+        )
     }
 }
 

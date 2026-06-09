@@ -46,4 +46,10 @@ class TodoViewModel(application: Application): AndroidViewModel(application) {
             }
         }
     }
+
+    fun deletedCompletedTodos() {
+        viewModelScope.launch {
+            todoDao.deleteCompletedTodos()
+        }
+    }
 }

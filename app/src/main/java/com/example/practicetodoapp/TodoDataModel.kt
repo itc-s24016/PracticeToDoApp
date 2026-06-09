@@ -39,6 +39,9 @@ interface TodoDao {
 
     @Query("SELECT MAX(position) FROM todos")
     suspend fun getMaxPosition(): Int?
+
+    @Query("DELETE FROM todos WHERE isCompleted = TRUE")
+    suspend fun deleteCompletedTodos()
 }
 
 @Database(entities = [Todo::class], version = 1, exportSchema = false)
