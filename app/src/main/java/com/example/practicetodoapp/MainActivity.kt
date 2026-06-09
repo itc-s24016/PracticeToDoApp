@@ -259,7 +259,6 @@ fun TodoTopBar (
             }
         }
     )
-
 }
 
 @Preview(showBackground = true)
