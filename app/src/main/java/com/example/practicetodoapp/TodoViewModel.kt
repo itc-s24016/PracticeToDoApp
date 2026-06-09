@@ -2,8 +2,6 @@ package com.example.practicetodoapp
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.update
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +10,8 @@ import kotlinx.coroutines.flow.stateIn
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onEach
 
 class TodoViewModel(application: Application): AndroidViewModel(application) {
     private val _showCompleted = MutableStateFlow(false)
@@ -21,9 +21,14 @@ class TodoViewModel(application: Application): AndroidViewModel(application) {
         _showCompleted.value = show
     }
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
     private val todoDao = TodoDatabase.getInstance(application.applicationContext).todoDao()
 
     private val _todos = todoDao.getAll()
+        .onEach { _isLoading.value = false }
+        .catch { _isLoading.value = false; throw it }
 
     val showTodos: StateFlow<List<Todo>> =
         combine(_todos, _showCompleted) { todos, showCompleted ->

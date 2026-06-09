@@ -1,6 +1,7 @@
 package com.example.practicetodoapp
 
 import android.os.Bundle
+import android.os.Message
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -49,6 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.CircularProgressIndicator
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +70,7 @@ fun Main() {
     val viewModel: TodoViewModel = viewModel()
     val showTodos by viewModel.showTodos.collectAsStateWithLifecycle()
     val showCompleted by viewModel.showCompleted.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     var editingTodo by remember {mutableStateOf<Todo?>(null)}
     var showCleanupDialog by remember {mutableStateOf(false)}
     Scaffold(
@@ -89,11 +93,15 @@ fun Main() {
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            TodoList(
-                todos = showTodos,
-                onToggleComplete = {viewModel.toggleComplete(it)},
-                onEdit = {editingTodo = it},
-            )
+            when {
+                isLoading -> LoadingView()
+                showTodos.isEmpty() -> EmptyView(message = "ToDo は 0 件です。\n 次の予定ができたら＋で追加しましょう。")
+                else -> TodoList(
+                    todos = showTodos,
+                    onToggleComplete = {viewModel.toggleComplete(it)},
+                    onEdit = {editingTodo = it},
+                )
+            }
         }
     }
     editingTodo?.let { todo ->
@@ -121,6 +129,36 @@ fun Main() {
                     Text("キャンセル")
                 }
             }
+        )
+    }
+}
+
+@Composable
+fun LoadingView(
+    modifier: Modifier = Modifier
+){
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ){
+        CircularProgressIndicator(color = Color.Gray)
+    }
+}
+
+@Composable
+fun EmptyView(
+    message: String,
+    modifier: Modifier = Modifier
+){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ){
+        Text(
+            text = message,
+            color = Color.Gray
         )
     }
 }
