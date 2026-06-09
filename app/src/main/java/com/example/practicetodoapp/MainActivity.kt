@@ -1,7 +1,6 @@
 package com.example.practicetodoapp
 
 import android.os.Bundle
-import android.os.Message
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 
 import androidx.compose.foundation.clickable
@@ -52,6 +50,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.ui.Alignment
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +101,8 @@ fun Main() {
                 showTodos.isEmpty() -> EmptyView(message = "ToDo は 0 件です。\n 次の予定ができたら＋で追加しましょう。")
                 else -> TodoList(
                     todos = showTodos,
+                    onMoveUp = {viewModel.moveUp(it)},
+                    onMoveDown = {viewModel.moveDown(it)},
                     onToggleComplete = {viewModel.toggleComplete(it)},
                     onEdit = {editingTodo = it},
                 )
@@ -228,18 +233,26 @@ fun EditTodoDialog(
 @Composable
 fun TodoList(
     todos: List<Todo>,
+    onMoveUp: (Todo) -> Unit,
+    onMoveDown: (Todo) -> Unit,
     onToggleComplete: (Todo) -> Unit,
     onEdit: (Todo) -> Unit,
     modifier: Modifier = Modifier
 ){
     LazyColumn(modifier = Modifier) {
-        items (
-            items = todos,
-            key = {it.id}
-        ) {
-                todo ->
+       itemsIndexed(
+           items = todos,
+           key = {_, todo -> todo.id}
+       ) {
+           index, todo ->
+           val isFirst = index == 0
+           val isLast = index == todos.lastIndex
             TodoCard(
                 todo = todo,
+                isFirst = isFirst,
+                isLast = isLast,
+                onMoveUp = onMoveUp,
+                onMoveDown = onMoveDown,
                 onToggleComplete = onToggleComplete,
                 onEdit = onEdit
             )
@@ -250,6 +263,11 @@ fun TodoList(
 @Composable
 fun TodoCard(
     todo: Todo,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onMoveUp: (Todo) -> Unit,
+    onMoveDown: (Todo) -> Unit,
+
     onToggleComplete: (Todo) -> Unit,
     onEdit: (Todo) -> Unit,
 ){
@@ -279,6 +297,26 @@ fun TodoCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                IconButton(
+                    onClick = {onMoveUp(todo)},
+                    enabled = !isFirst,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(Icons.Default.KeyboardArrowUp, contentDescription = "上へ")
+                }
+
+                IconButton(
+                    onClick = {onMoveDown(todo)},
+                    enabled = !isLast,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "下へ")
+                }
             }
         }
     }

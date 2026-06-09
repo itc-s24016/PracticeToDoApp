@@ -57,4 +57,27 @@ class TodoViewModel(application: Application): AndroidViewModel(application) {
             todoDao.deleteCompletedTodos()
         }
     }
+
+    fun moveUp(todo: Todo){
+        viewModelScope.launch {
+            val current = showTodos.value
+            val idx = current.indexOfFirst {it.id == todo.id}
+            val prev = current[idx - 1]
+            todoDao.update(
+                todo.copy(position = prev.position),
+                prev.copy(position = todo.position)
+            )
+        }
+    }
+    fun moveDown(todo: Todo){
+        viewModelScope.launch {
+            val current = showTodos.value
+            val idx = current.indexOfFirst {it.id == todo.id}
+            val next = current[idx + 1]
+            todoDao.update(
+                todo.copy(position = next.position),
+                next.copy(position = todo.position)
+            )
+        }
+    }
 }

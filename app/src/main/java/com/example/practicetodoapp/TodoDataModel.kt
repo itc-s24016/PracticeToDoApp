@@ -35,7 +35,7 @@ interface TodoDao {
     suspend fun insert(todo: Todo): Long
 
     @Update
-    suspend fun update(todo: Todo)
+    suspend fun update(vararg todos: Todo)
 
     @Query("SELECT MAX(position) FROM todos")
     suspend fun getMaxPosition(): Int?
